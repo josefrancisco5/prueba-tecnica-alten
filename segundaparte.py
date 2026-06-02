@@ -10,7 +10,7 @@ class APIDownloader:
     
     def get_all_countries(self):
         try:
-            url = f"{self.base_url}/all?fields=name,capital,region,population"
+            url = f"{self.base_url}/all?fields=name,capital,region,population,area,currencies,languages"
             response = requests.get(url)
             response.raise_for_status()
             data = response.json()
@@ -53,9 +53,24 @@ class BigQueryUploader:
             # Renombrar columnas con puntos para BigQuery
             df.columns = df.columns.str.replace('.', '_', regex=False)
             
+            # Filtrar solo las columnas del esquema
+            columns_to_keep = ['name_common', 'capital', 'region', 'population', 'area']
+            df = df[[col for col in columns_to_keep if col in df.columns]]
+            
+            # Convertir arrays a strings
+            for col in df.columns:
+                if df[col].dtype == 'object':
+                    df[col] = df[col].apply(lambda x: str(x) if isinstance(x, list) else x)
+            
             job_config = bigquery.LoadJobConfig(
                 write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
-                autodetect=True
+                schema=[
+                    bigquery.SchemaField("name_common", "STRING"),
+                    bigquery.SchemaField("capital", "STRING"),
+                    bigquery.SchemaField("region", "STRING"),
+                    bigquery.SchemaField("population", "INTEGER"),
+                    bigquery.SchemaField("area", "FLOAT"),
+                ]
             )
             
             job = self.client.load_table_from_dataframe(
@@ -98,10 +113,11 @@ def main():
     
     print("\nCreando tabla en BigQuery...")
     schema = [
-        bigquery.SchemaField("name", "STRING"),
+        bigquery.SchemaField("name_common", "STRING"),
         bigquery.SchemaField("capital", "STRING"),
         bigquery.SchemaField("region", "STRING"),
         bigquery.SchemaField("population", "INTEGER"),
+        bigquery.SchemaField("area", "FLOAT"),
     ]
     uploader.create_table(schema)
     

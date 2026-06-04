@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.dummy import DummyOperator
+from airflow.models.baseoperator import BaseOperator
+from airflow.utils.decorators import apply_defaults
 
 default_args = {
     'owner': 'airflow',
@@ -33,3 +35,22 @@ with DAG(
             for j in range(N):
                 if j % 2 == 1:
                     tasks[j] >> tasks[i]
+    
+    class TimeDiff(BaseOperator):
+        @apply_defaults
+        def __init__(self, diff_date, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.diff_date = diff_date
+        
+        def execute(self, context):
+            current_date = datetime.now()
+            diff = current_date - self.diff_date
+            self.log.info(f"Difference between {self.diff_date} and {current_date}: {diff}")
+            return diff
+    
+    time_diff_task = TimeDiff(
+        task_id='time_diff_task',
+        diff_date=datetime(2024, 1, 1)
+    )
+    
+    start >> time_diff_task >> end

@@ -1,0 +1,15 @@
+Hook vs Conexión:
+
+Un Hook es una abstracción que proporciona una interfaz Python para interactuar con sistemas externos (bases de datos, APIs, etc.).
+Maneja la autenticación, gestión de conexiones y proporciona métodos para realizar operaciones en el sistema externo.
+Ejemplos: PostgresHook, S3Hook, SlackHook.
+
+Una Conexión es un objeto de configuración que almacena las credenciales y parámetros de conexión (host, puerto, usuario, contraseña, etc.)
+necesarios para conectarse a un sistema externo. Las conexiones se almacenan en la base de datos de metadatos de Airflow y se pueden gestionar a través de la UI o CLI.
+
+Diferencias clave:
+- Hook: Código/Interfaz que usa datos de conexión para interactuar con sistemas externos
+- Conexión: Datos/Credenciales almacenados en Airflow que los Hooks usan para autenticarse y conectarse
+- Los Hooks son clases Python que implementan lógica específica para un servicio
+- Las Conexiones son entradas de configuración que almacenan detalles de autenticación
+- Un Hook lee de una Conexión para obtener credenciales, luego realiza operaciones

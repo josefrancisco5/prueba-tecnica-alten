@@ -20,3 +20,16 @@ with DAG(
     end = DummyOperator(task_id='end')
     
     start >> end
+
+    N = 5
+    tasks = []
+    
+    for i in range(N):
+        task = DummyOperator(task_id=f'task_{i}')
+        tasks.append(task)
+    
+    for i in range(N):
+        if i % 2 == 0:
+            for j in range(N):
+                if j % 2 == 1:
+                    tasks[j] >> tasks[i]
